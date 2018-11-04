@@ -4,20 +4,22 @@ class Vehicle {
   PVector acceleration;
   float size;
   float m;
+  float k;
+  float b;
   float maxforce;    
   float maxspeed;    
 
   PShape part;
   float partSize;
-  
-  Vehicle(PVector o) {
+
+  Vehicle(PVector o, boolean selected) {
     position = o.copy();
     size = 30;
     m=1;
-    maxspeed = 3;
-    maxforce = 0.2;
+    maxspeed = 4;
+    maxforce = 0.5;
     acceleration = new PVector(0, 0);
-    velocity = new PVector(random(-1,1), random(-1,1));
+    velocity = new PVector(random(-1, 1), random(-1, 1));
 
     partSize = 50;
     part = createShape();
@@ -43,35 +45,42 @@ class Vehicle {
   void applyBehaviors(ArrayList<Vehicle> vehicles) {
     PVector separateForce = separate(vehicles);
     PVector seekForce = seek(target_point);
-    separateForce.mult(2);
+    PVector cohesionForce = cohesion(vehicles);
+    separateForce.mult(3);
     seekForce.mult(1);
+    cohesionForce.mult(1);
     applyForce(separateForce);
     applyForce(seekForce);
+    //applyForce(cohesionForce);
   }
 
   PVector seek(PVector target) {
-    PVector desired = PVector.sub(target, position);  // A vector pointing from the position to the target
+    PVector desired = PVector.sub(target, position); 
+    float d = PVector.dist(target, position);
+    float dampSpeed = map(d, 0, size*3, 0, maxspeed);
     desired.normalize();
-    desired.mult(maxspeed);
-    // Steering = Desired minus velocity
+    //desired.mult(maxspeed);
+    if (d < size*4) {
+      desired.mult(dampSpeed);
+    } else {
+      desired.mult(maxspeed);
+    }
     PVector steer = PVector.sub(desired, velocity);
-    steer.limit(maxforce);  // Limit to maximum steering force
-
+    steer.limit(maxforce);
     return steer;
   }
 
   PVector separate (ArrayList<Vehicle> vehicles) {
-    PVector sum = new PVector();
+    PVector sum = new PVector(0, 0);
     int count = 0;
     for (Vehicle other : vehicles) {
       float d = PVector.dist(position, other.position);
       if ((d > 0) && (d < size * 2)) {
         PVector diff = PVector.sub(position, other.position);
         diff.normalize();
-        diff.div(d*d);        
+        diff.div(d);        
         sum.add(diff);
-        count++;            
-        //println(count);
+        count++;
       }
     }
     if (count > 0) {
@@ -80,6 +89,24 @@ class Vehicle {
       sum.mult(maxspeed);
       sum.sub(velocity);
       sum.limit(maxforce);
+    }
+    return sum;
+  }
+
+  PVector cohesion (ArrayList<Vehicle> vehicles) {
+    float dist = 200;
+    PVector sum = new PVector(0, 0);  
+    int count = 0;
+    for (Vehicle other : vehicles) {
+      float d = PVector.dist(position, other.position);
+      if ((d > 0) && (d < dist)) {
+        sum.add(other.position); 
+        count++;
+      }
+    }
+    if (count > 0) {
+      sum.div(count);
+      return seek(sum);
     }
     return sum;
   }
