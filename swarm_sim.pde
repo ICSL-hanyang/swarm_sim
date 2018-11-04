@@ -1,24 +1,28 @@
-ArrayList<Particle> particles; 
+ArrayList<Vehicle> vehicles;
 PImage drone;
-
 int drone_num = 10;
+
 
 void setup() {
   size(800, 600, P2D);
   drone = loadImage("ry.png");
-  particles = new ArrayList<Particle>();
-  
+  frameRate(50);
+  vehicles = new ArrayList<Vehicle>();
   for (int i = 0; i < drone_num; i++) {
-    particles.add(new Particle(new PVector(random(-width/2,width/2), random(-height/2,height/2))));
+    vehicles.add((new Vehicle(new PVector(random(width), random(height)))));
   }
 }
 
-
 void draw() {
   background(255);
+  draw_event();
 
-  for (int i = 0; i < particles.size(); i++) {
-      Particle p = particles.get(i);
-      p.updateVelocityAndPosition();  
-    }
+  for (Vehicle v : vehicles) {
+    v.applyBehaviors(vehicles);
+    v.geofence();
+    v.update();
+    v.display();
+  }
+
+
 }

@@ -1,23 +1,24 @@
-class Particle {
+class Vehicle {
   PVector position;
   PVector velocity;
   PVector acceleration;
-  PVector origin_pos;
+  float size;
   float m;
-  float g;
-  float d;
+  float maxforce;    
+  float maxspeed;    
 
   PShape part;
   float partSize;
-
-  Particle(PVector o) {
-    origin_pos = o.copy();
-    position = new PVector(random(-width/2, width/2), random(-height/2, height/2));
-    velocity = new PVector(random(-1, 1), random(-1, 1));
+  
+  Vehicle(PVector o) {
+    position = o.copy();
+    size = 30;
+    m=1;
+    maxspeed = 3;
+    maxforce = 0.2;
     acceleration = new PVector(0, 0);
-    m = 5;
+    velocity = new PVector(random(-1,1), random(-1,1));
 
-    //이미지 형상
     partSize = 50;
     part = createShape();
     part.beginShape(QUAD);
@@ -33,43 +34,73 @@ class Particle {
     part.endShape();
   }
 
-
-  void resetAcceleration() {
-    acceleration = PVector.mult(acceleration, 0);
+  void applyForce(PVector force) {
+    PVector f = force;
+    f.div(m);   
+    acceleration.add(f);
   }
 
-  void updatePartialAcceleration(Particle neighbor, boolean clicked) {
-    if (neighbor != this) {
-      PVector dist = PVector.sub(position, neighbor.position);
-      //      d = PVector.dist(position, neighbor.position);
+  void applyBehaviors(ArrayList<Vehicle> vehicles) {
+    PVector separateForce = separate(vehicles);
+    PVector seekForce = seek(target_point);
+    separateForce.mult(2);
+    seekForce.mult(1);
+    applyForce(separateForce);
+    applyForce(seekForce);
+  }
 
-      //      float common;
-      //      if (d < 1) d = 1;          //너무 가까우면 1로봄 common이 너무 커지지 않게
-      //      if (clicked) {
-      //        common = m * neighbor.m / (d*d);  //m의 곱을 거리로 나눔, m이 커봐야 8이니까 common은 최대 64
-      //      } else {
-      //        common = abs(m) * abs(neighbor.m) / (d);  //m의 곱을 거리로 나눔, m이 커봐야 8이니까 common은 최대 64
-      //      }
-      //      acceleration = PVector.add(dist.mult(common), acceleration);
+  PVector seek(PVector target) {
+    PVector desired = PVector.sub(target, position);  // A vector pointing from the position to the target
+    desired.normalize();
+    desired.mult(maxspeed);
+    // Steering = Desired minus velocity
+    PVector steer = PVector.sub(desired, velocity);
+    steer.limit(maxforce);  // Limit to maximum steering force
+
+    return steer;
+  }
+
+  PVector separate (ArrayList<Vehicle> vehicles) {
+    PVector sum = new PVector();
+    int count = 0;
+    for (Vehicle other : vehicles) {
+      float d = PVector.dist(position, other.position);
+      if ((d > 0) && (d < size * 2)) {
+        PVector diff = PVector.sub(position, other.position);
+        diff.normalize();
+        diff.div(d*d);        
+        sum.add(diff);
+        count++;            
+        //println(count);
+      }
     }
+    if (count > 0) {
+      sum.div(count);
+      sum.normalize();
+      sum.mult(maxspeed);
+      sum.sub(velocity);
+      sum.limit(maxforce);
+    }
+    return sum;
   }
 
-  void updateVelocityAndPosition() {
-    velocity = PVector.add(velocity.mult(1), acceleration.mult(g));
+  void update() {
+    velocity.add(acceleration);
+    velocity.limit(maxspeed);
     position.add(velocity);
-
-    pushMatrix();
-    translate(width/2, height/2);
+    acceleration.mult(0);
+  }
+  void display() {
+    part.resetMatrix();
+    part.translate(position.x, position.y); 
     shape(part);
-    popMatrix();
-    part.translate(velocity.x, velocity.y); 
-
-
-    if ((position.x < -width/2) || (position.x > width/2)) {
-      velocity.x *= -1;   //벽에 튕기는 코드
+  }
+  void geofence() {
+    if ((position.x <0) || (position.x > width)) {
+      velocity.x *= -1;   
       acceleration.x *= -1;
     }
-    if ((position.y < -height/2) || (position.y > height/2)) {
+    if ((position.y < 0) || (position.y > height)) {
       velocity.y *= -1;
       acceleration.y *= -1;
     }
