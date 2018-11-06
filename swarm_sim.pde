@@ -1,6 +1,6 @@
 ArrayList<Vehicle> vehicles;
 PImage drone;
-int droneNum = 10;
+int droneNum = 15;
 
 
 void setup() {

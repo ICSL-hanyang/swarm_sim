@@ -8,6 +8,7 @@ class Vehicle {
   float b;
   float maxforce;    
   float maxspeed;    
+  boolean selected;
 
   PShape part;
   float partSize;
@@ -121,15 +122,21 @@ class Vehicle {
     part.resetMatrix();
     part.translate(position.x, position.y); 
     shape(part);
-  }
-  void geofence() {
-    if ((position.x <0) || (position.x > width)) {
-      velocity.x *= -1;   
-      acceleration.x *= -1;
+    //if (selected==true) {
+    //  fill(255, 0, 0,30);
+    //  stroke(0);
+    //  strokeWeight(2);
+    //  ellipse(position.x, position.y, 50, 50);
+    //}
     }
-    if ((position.y < 0) || (position.y > height)) {
-      velocity.y *= -1;
-      acceleration.y *= -1;
+    void geofence() {
+      if ((position.x <0) || (position.x > width)) {
+        velocity.x *= -1;   
+        acceleration.x *= -1;
+      }
+      if ((position.y < 0) || (position.y > height)) {
+        velocity.y *= -1;
+        acceleration.y *= -1;
+      }
     }
   }
-}

@@ -9,12 +9,12 @@ void drawEvent() {
   strokeWeight(2);
   ellipse(target_point.x, target_point.y, 10, 10);
 
-  //if (erase==false) {
-  //  fill(10, 0, 200, 70);
-  //  stroke(0);
-  //  strokeWeight(2);
-  //  rect(drag_1.x, drag_1.y, drag_2.x-drag_1.x, drag_2.y-drag_1.y);
-  //}
+  if (erase==false) {
+    fill(10, 0, 200, 70);
+    stroke(0);
+    strokeWeight(2);
+    rect(drag_1.x, drag_1.y, drag_2.x-drag_1.x, drag_2.y-drag_1.y);
+  }
 }
 
 void mouseDragged() {
@@ -29,8 +29,12 @@ void mousePressed() {
     target_point = new PVector(mouseX, mouseY);
   }
 }
-void mouseReleased() {
+void mouseReleased(ArrayList<Vehicle> vehicles) {
   erase = true;
+  //for (Vehicle other : vehicles) {
+  //  if (position.x<drag_2.x && position.x>drag_1.x && position.y<drag_2.y && position.y >drag_1.y) {
+  //  }
+  //}
 }
 
 void keyPressed() {
