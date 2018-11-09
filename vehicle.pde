@@ -101,7 +101,7 @@ class Vehicle {
         diff.div(d);        
         sum.add(diff);
         count++;
-        println(count);
+        //println(count);
       }
     }
     if (count > 0) {
